@@ -17,9 +17,6 @@ load_dotenv()
 app = Flask(__name__)
 stop_event = threading.Event()
 
-app = Flask(__name__)
-stop_event = threading.Event()
-
 postgres_url = os.getenv("POSTGRES_URL")
 
 def generate_vanity_address(suffix: str):
