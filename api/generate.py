@@ -18,6 +18,8 @@ app = Flask(__name__)
 stop_event = threading.Event()
 
 postgres_url = os.getenv("POSTGRES_URL")
+# endpoint_id = "ep-falling-paper-a4a6awfy"
+# postgres_url += f"&options=endpoint%3D{endpoint_id}"
 
 def generate_vanity_address(suffix: str):
     while not stop_event.is_set():
@@ -28,6 +30,7 @@ def generate_vanity_address(suffix: str):
         if vanity_address.endswith(suffix):
             logger.info(f"Wallet generated: ${vanity_address}")
             save_to_database(vanity_address, secret)
+            return vanity_address
 
 def save_to_database(public_key, secret_key):
     try:
@@ -60,9 +63,10 @@ def start_generation():
     db_connection_successful = check_database_connection()
     if db_connection_successful:
         stop_event.clear()
+        token_generated = generate_vanity_address(suffix)
         threading.Thread(target=generate_vanity_address, args=(suffix,)).start()
         logger.info("Started generation process")
-        return jsonify({"status": "started", "suffix": suffix, "db_status": "connected"})
+        return jsonify({"status": "started", "suffix": suffix, "db_status": "connected", "token_generated": token_generated})
     else:
         logger.error("Failed to start generation process due to database connection failure")
         return jsonify({"status": "failed", "suffix": suffix, "db_status": "connection_failed"}), 500
@@ -75,3 +79,4 @@ def stop_generation():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    # app.run(debug=True, port=8080)
