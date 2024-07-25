@@ -9,8 +9,13 @@ from base58 import b58encode
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
+log_level = level=logging.INFO
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(log_level)
+logger.addHandler(console_handler)
 
 load_dotenv()
 
@@ -63,7 +68,7 @@ def start_generation():
     db_connection_successful = check_database_connection()
     if db_connection_successful:
         stop_event.clear()
-        token_generated = generate_vanity_address(suffix)
+        # token_generated = generate_vanity_address(suffix)
         threading.Thread(target=generate_vanity_address, args=(suffix,)).start()
         logger.info("Started generation process")
         return jsonify({"status": "started", "suffix": suffix, "db_status": "connected", "token_generated": token_generated})
