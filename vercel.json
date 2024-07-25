@@ -1,0 +1,16 @@
+{
+    "version": 1,
+    "builds": [
+      {
+        "src": "api/generate.py",
+        "use": "@vercel/python"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "/api/generate.py"
+      }
+    ]
+  }
+  

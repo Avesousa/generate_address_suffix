@@ -1,0 +1,4 @@
+solana
+base58
+psycopg2
+flask
