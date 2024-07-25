@@ -71,7 +71,7 @@ def start_generation():
         # token_generated = generate_vanity_address(suffix)
         threading.Thread(target=generate_vanity_address, args=(suffix,)).start()
         logger.info("Started generation process")
-        return jsonify({"status": "started", "suffix": suffix, "db_status": "connected", "token_generated": token_generated})
+        return jsonify({"status": "started", "suffix": suffix, "db_status": "connected" })
     else:
         logger.error("Failed to start generation process due to database connection failure")
         return jsonify({"status": "failed", "suffix": suffix, "db_status": "connection_failed"}), 500
