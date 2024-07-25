@@ -21,8 +21,6 @@ app = Flask(__name__)
 stop_event = threading.Event()
 
 postgres_url = os.getenv("POSTGRES_URL")
-endpoint_id = "ep-falling-paper-a4a6awfy"  # reemplaza esto con tu endpoint ID real
-postgres_url += f"&options=endpoint%3D{endpoint_id}"
 
 def generate_vanity_address(suffix: str):
     while not stop_event.is_set():
