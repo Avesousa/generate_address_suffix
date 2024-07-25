@@ -20,6 +20,10 @@ stop_event = threading.Event()
 app = Flask(__name__)
 stop_event = threading.Event()
 
+postgres_url = os.getenv("POSTGRES_URL")
+endpoint_id = "ep-falling-paper-a4a6awfy"  # reemplaza esto con tu endpoint ID real
+postgres_url += f"&options=endpoint%3D{endpoint_id}"
+
 def generate_vanity_address(suffix: str):
     while not stop_event.is_set():
         keypair = Keypair()
@@ -32,10 +36,6 @@ def generate_vanity_address(suffix: str):
 
 def save_to_database(public_key, secret_key):
     try:
-        postgres_url = os.getenv("POSTGRES_URL")
-        endpoint_id = "ep-falling-paper-a4a6awfy"  # reemplaza esto con tu endpoint ID real
-        postgres_url += f"&options=endpoint%3D{endpoint_id}"
-        
         conn = psycopg2.connect(postgres_url)
         cur = conn.cursor()
         cur.execute(
@@ -48,14 +48,29 @@ def save_to_database(public_key, secret_key):
         logger.info(f"Saved address {public_key} to database")
     except Exception as e:
         logger.error(f"Error saving to database {e}")
+        
+def check_database_connection():
+    try:
+        conn = psycopg2.connect(postgres_url)
+        conn.close()
+        logger.info("Database connection successful")
+        return True
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+        return False
 
 @app.route('/start', methods=['GET'])
 def start_generation():
     suffix = request.args.get('suffix', 'pump')
-    stop_event.clear()
-    threading.Thread(target=generate_vanity_address, args=(suffix,)).start()
-    logger.info(f"Started generation process with {suffix} like suffix")
-    return jsonify({"status": "started", "suffix": suffix})
+    db_connection_successful = check_database_connection()
+    if db_connection_successful:
+        stop_event.clear()
+        threading.Thread(target=generate_vanity_address, args=(suffix,)).start()
+        logger.info("Started generation process")
+        return jsonify({"status": "started", "suffix": suffix, "db_status": "connected"})
+    else:
+        logger.error("Failed to start generation process due to database connection failure")
+        return jsonify({"status": "failed", "suffix": suffix, "db_status": "connection_failed"}), 500
 
 @app.route('/stop', methods=['GET'])
 def stop_generation():
